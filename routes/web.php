@@ -20,12 +20,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/close-day', [DashboardController::class, 'closeDay'])->name('dashboard.close-day');
     
     Route::resource('warga', WargaController::class);
     
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
     Route::post('/transaksi/topup', [TransaksiController::class, 'topup'])->name('transaksi.topup');
     Route::post('/transaksi/manual', [TransaksiController::class, 'manualPayment'])->name('transaksi.manual');
+    Route::post('/transaksi/pengeluaran', [TransaksiController::class, 'storeExpenditure'])->name('transaksi.pengeluaran');
+    Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
     
     Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
     Route::post('/scan/process', [ScanController::class, 'process'])->name('scan.process');

@@ -18,33 +18,36 @@
                 <tr>
                     <th>Waktu</th>
                     <th>Nama Warga</th>
-                    <th>Nominal</th>
                     <th>Jenis</th>
-                    <th>Petugas</th>
+                    <th>Nominal</th>
                     <th>Keterangan</th>
+                    <th>Petugas</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($transaksis as $tx)
                 <tr>
                     <td>{{ $tx->created_at->format('d/m/Y H:i') }}</td>
-                    <td><span style="font-weight: 600;">{{ $tx->warga->nama }}</span></td>
                     <td>
-                        <span style="font-weight: 700; color: {{ $tx->jenis == 'topup' ? 'var(--success)' : 'var(--text-main)' }}">
-                            {{ $tx->jenis == 'topup' ? '+' : '' }} Rp {{ number_format($tx->nominal, 0, ',', '.') }}
+                        <div style="font-weight: 600;">{{ $tx->warga->nama }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ $tx->warga->nik }}</div>
+                    </td>
+                    <td>
+                        <span class="badge {{ $tx->jenis == 'topup' ? 'badge-success' : 'badge-primary' }}">
+                            {{ strtoupper($tx->jenis) }}
                         </span>
                     </td>
-                    <td>
-                        @if($tx->jenis == 'jimpitan')
-                            <span class="badge badge-info">Jimpitan</span>
-                        @elseif($tx->jenis == 'topup')
-                            <span class="badge badge-success">Top Up</span>
-                        @else
-                            <span class="badge badge-danger">Tarik</span>
-                        @endif
+                    <td style="font-weight: 700; color: {{ $tx->jenis == 'topup' ? 'var(--success)' : 'var(--text-main)' }}">
+                        {{ $tx->jenis == 'topup' ? '+' : '-' }} Rp {{ number_format($tx->nominal, 0, ',', '.') }}
                     </td>
+                    <td>{{ $tx->keterangan }}</td>
                     <td>{{ $tx->user->name }}</td>
-                    <td><span style="font-size: 0.75rem; color: var(--text-muted);">{{ $tx->keterangan }}</span></td>
+                    <td>
+                        <button onclick="confirmDeleteTransaction({{ $tx->id }})" class="btn btn-outline" style="color: var(--danger); padding: 0.4rem; border: none;" title="Batalkan Transaksi">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -55,4 +58,31 @@
     </div>
 </div>
 </div>
+
+<form id="delete-tx-form" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+@push('scripts')
+<script>
+    function confirmDeleteTransaction(id) {
+        Swal.fire({
+            title: 'Batalkan Transaksi?',
+            text: "Saldo warga akan dikembalikan/disesuaikan dan transaksi ini akan dihapus dari riwayat.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Tutup'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('delete-tx-form');
+                form.action = `/transaksi/${id}`;
+                form.submit();
+            }
+        });
+    }
+</script>
+@endpush
 @endsection

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaksi extends Model
 {
-    protected $fillable = ['warga_id', 'user_id', 'nominal', 'jenis', 'keterangan'];
+    protected $fillable = ['warga_id', 'user_id', 'nominal', 'metode_pembayaran', 'jenis', 'keterangan'];
 
     public function warga()
     {

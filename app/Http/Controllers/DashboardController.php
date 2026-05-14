@@ -21,12 +21,16 @@ class DashboardController extends Controller
                                     ->where('jenis', 'jimpitan')
                                     ->sum('nominal');
         
-        $wargaLunasCount = Transaksi::whereDate('created_at', $today)
+        $wargaLunasIds = Transaksi::whereDate('created_at', $today)
                                     ->where('jenis', 'jimpitan')
-                                    ->distinct('warga_id')
-                                    ->count();
+                                    ->pluck('warga_id')
+                                    ->toArray();
+
+        $wargaLunas = Warga::whereIn('id', $wargaLunasIds)->get();
+        $wargaBelumBayar = Warga::whereNotIn('id', $wargaLunasIds)->get();
+        $wargaLunasCount = count($wargaLunasIds);
                                     
-        $recentTransactions = Transaksi::with(['warga', 'user'])
+        $recentActivities = Transaksi::with(['warga', 'user'])
                                         ->latest()
                                         ->take(8)
                                         ->get();
@@ -35,19 +39,47 @@ class DashboardController extends Controller
         $totalWargaBelumBayar = $totalWarga - $wargaLunasCount;
 
         // Chart Data (7 days)
+        $chartLabels = [];
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
-            $chartData['labels'][] = $date->format('d M');
-            $chartData['values'][] = Transaksi::whereDate('created_at', $date)
-                                             ->where('jenis', 'jimpitan')
-                                             ->sum('nominal');
+            $chartLabels[] = $date->format('d M');
+            $chartData[] = Transaksi::whereDate('created_at', $date)
+                                     ->where('jenis', 'jimpitan')
+                                     ->sum('nominal');
         }
+
+        $totalJimpitan = Transaksi::where('jenis', 'jimpitan')->sum('nominal');
+        $totalTopup = Transaksi::where('jenis', 'topup')->sum('nominal');
+        $totalPengeluaran = Transaksi::where('jenis', 'pengeluaran')->sum('nominal');
+        $totalKas = ($totalJimpitan + $totalTopup) - $totalPengeluaran;
+
+        $wargas = Warga::all();
 
         return view('dashboard.index', compact(
             'totalKas', 'totalWarga', 'pemasukanHariIni', 
-            'wargaLunasCount', 'recentTransactions', 'chartData',
-            'topBalanceWarga', 'totalWargaBelumBayar'
+            'wargaLunasCount', 'recentActivities', 'chartLabels', 'chartData',
+            'topBalanceWarga', 'totalWargaBelumBayar',
+            'totalJimpitan', 'totalTopup', 'totalPengeluaran', 'wargaLunas', 'wargaBelumBayar', 'wargas'
         ));
+    }
+
+    public function closeDay()
+    {
+        $today = date('Y-m-d');
+        
+        // Cari warga yang BELUM bayar hari ini
+        $paidWargaIds = Transaksi::whereDate('created_at', $today)
+                                ->where('jenis', 'jimpitan')
+                                ->pluck('warga_id')
+                                ->toArray();
+
+        $unpaidWarga = Warga::whereNotIn('id', $paidWargaIds)->get();
+
+        foreach ($unpaidWarga as $warga) {
+            $warga->increment('tunggakan', 500);
+        }
+
+        return back()->with('success', count($unpaidWarga) . ' warga telah dicatat menunggak Rp 500 untuk hari ini.');
     }
 }

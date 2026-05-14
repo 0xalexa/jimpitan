@@ -11,12 +11,14 @@
 <body>
     <div class="auth-wrapper">
         <div class="auth-card">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;">
-                    <i class="fas fa-coins"></i>
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                    <div class="brand-icon" style="width: 64px; height: 64px; font-size: 2rem;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
                 </div>
-                <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Jimpitan Digital</h1>
-                <p style="color: var(--text-muted); font-size: 0.875rem;">Silakan masuk ke akun Anda</p>
+                <h1 style="font-size: 2rem; font-weight: 900; color: var(--text-main); letter-spacing: -1px;">Jimpitan Digital</h1>
+                <p style="color: var(--text-muted); font-size: 1rem; margin-top: 0.5rem;">Silakan masuk ke Dashboard Admin</p>
             </div>
 
             <form action="{{ route('login') }}" method="POST">
@@ -32,8 +34,8 @@
                     <label for="password">Kata Sandi</label>
                     <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.875rem;">
-                    Masuk Sekarang
+                <button type="submit" class="btn-header primary" style="width: 100%; justify-content: center; padding: 1rem; border-radius: 1.25rem; font-size: 1rem;">
+                    Masuk Sekarang <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
                 </button>
             </form>
             

@@ -1,107 +1,177 @@
 @extends('layouts.app')
 
-@yield('title', 'Dashboard')
-@section('page_title', 'Dashboard Overview')
+@section('title', 'Dashboard')
+@section('page_title', 'Overview')
 
 @section('content')
-<div class="fade-in">
-    <!-- Hero Section -->
-    <div style="background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%); padding: 3rem 2rem; border-radius: 2rem; color: white; margin-bottom: 2rem; box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="position: relative; z-index: 1;">
-            <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.025em;">Halo, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h2>
-            <p style="opacity: 0.9; font-size: 1.125rem; max-width: 600px;">Siap mendigitalisasi jimpitan hari ini? Semua data warga dan statistik kas sudah terupdate secara realtime.</p>
-            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                <a href="{{ route('scan.index') }}" class="btn" style="background: white; color: var(--primary); padding: 0.875rem 1.75rem; border-radius: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                    <i class="fas fa-qrcode"></i> Scan Jimpitan
+    <!-- Welcome Hero -->
+    <div class="hero-banner">
+        <div class="hero-content">
+            <h1 class="hero-title">Halo, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h1>
+            <p class="hero-subtitle">Pantau kesehatan kas jimpitan hari ini secara realtime. Data warga dan statistik keuangan sudah terintegrasi otomatis.</p>
+            
+            <div class="hero-actions">
+                <a href="{{ route('scan.index') }}" class="btn-hero white">
+                    <i class="fas fa-camera"></i> Scan Jimpitan
                 </a>
-                <a href="{{ route('warga.index') }}" class="btn" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 0.875rem 1.75rem; border-radius: 1rem; backdrop-filter: blur(8px);">
-                    <i class="fas fa-plus-circle"></i> Top Up Saldo
-                </a>
-                <a href="{{ route('warga.index') }}" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.875rem 1.75rem; border-radius: 1rem;">
-                    <i class="fas fa-users"></i> Kelola Warga
-                </a>
+                <button onclick="openModal('topupModal')" class="btn-hero glass">
+                    <i class="fas fa-wallet"></i> Top Up Saldo
+                </button>
+                <button onclick="openModal('spendingModal')" class="btn-hero glass">
+                    <i class="fas fa-receipt"></i> Catat Pengeluaran
+                </button>
             </div>
         </div>
-        <!-- Abstract Shapes -->
-        <div style="position: absolute; right: -5%; top: -10%; width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px);"></div>
-        <div style="position: absolute; right: 10%; bottom: -20%; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(30px);"></div>
-        <i class="fas fa-shield-alt" style="position: absolute; right: 2rem; bottom: 1rem; font-size: 12rem; opacity: 0.05; transform: rotate(-15deg);"></i>
     </div>
 
+    <!-- Quick Stats -->
     <div class="stats-grid">
-        <div class="stat-card" style="border-bottom: 4px solid var(--primary);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <span class="stat-label">Total Saldo Kas</span>
-                    <span class="stat-value" style="display: block; margin-top: 0.5rem;">Rp {{ number_format($totalKas, 0, ',', '.') }}</span>
+        <!-- Total Kas -->
+        <div class="card-stat" onclick="openModal('summaryModal')">
+            <div class="stat-header">
+                <div class="stat-info">
+                    <p class="label">Total Saldo Kas RT</p>
+                    <h3 class="value">Rp {{ number_format($totalKas, 0, ',', '.') }}</h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: rgba(99, 102, 241, 0.1); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: var(--primary);">
-                    <i class="fas fa-wallet fa-lg"></i>
+                <div class="stat-icon" style="background: rgba(79, 70, 229, 0.1); color: #4f46e5;">
+                    <i class="fas fa-bank"></i>
                 </div>
             </div>
-            <p style="font-size: 0.75rem; color: var(--success); margin-top: 1rem; font-weight: 600;"><i class="fas fa-arrow-up"></i> Terakumulasi dari semua warga</p>
+            <div class="stat-footer trend-up">
+                <i class="fas fa-arrow-trend-up"></i>
+                <span>Lihat riwayat aliran dana</span>
+            </div>
         </div>
-        <div class="stat-card" style="border-bottom: 4px solid var(--success);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <span class="stat-label">Pemasukan Hari Ini</span>
-                    <span class="stat-value" style="display: block; margin-top: 0.5rem;">Rp {{ number_format($pemasukanHariIni, 0, ',', '.') }}</span>
+
+        <!-- Lunas -->
+        <div class="card-stat" onclick="openModal('lunasModal')">
+            <div class="stat-header">
+                <div class="stat-info">
+                    <p class="label">Warga Sudah Bayar</p>
+                    <h3 class="value">{{ $wargaLunasCount }} <span style="font-size: 1rem; color: var(--text-muted);">Warga</span></h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: var(--success);">
-                    <i class="fas fa-hand-holding-usd fa-lg"></i>
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem;">Update terakhir: {{ now()->format('H:i') }}</p>
+            <div class="stat-footer" style="color: #64748b;">
+                <i class="fas fa-users"></i>
+                <span>Dari total {{ $totalWarga }} warga aktif</span>
+            </div>
         </div>
-        <div class="stat-card" style="border-bottom: 4px solid var(--warning);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <span class="stat-label">Belum Bayar Hari Ini</span>
-                    <span class="stat-value" style="display: block; margin-top: 0.5rem; color: var(--danger);">{{ $totalWargaBelumBayar }} Warga</span>
+
+        <!-- Belum Bayar -->
+        <div class="card-stat" onclick="openModal('belumBayarModal')">
+            <div class="stat-header">
+                <div class="stat-info">
+                    <p class="label">Tunggakan Hari Ini</p>
+                    <h3 class="value" style="color: var(--danger);">{{ $totalWargaBelumBayar }} <span style="font-size: 1rem; color: var(--text-muted);">Warga</span></h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: var(--warning);">
-                    <i class="fas fa-exclamation-circle fa-lg"></i>
+                <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
             </div>
-            <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; margin-top: 1rem; overflow: hidden;">
-                <div style="width: {{ ($wargaLunasCount/$totalWarga)*100 }}%; height: 100%; background: var(--success);"></div>
+            <div class="stat-footer trend-down">
+                <i class="fas fa-clock"></i>
+                <span>Perlu penagihan jimpitan</span>
             </div>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-        <!-- Left Side: Chart & Top Warga -->
-        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <div class="card glass-card">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-chart-area" style="color: var(--primary); margin-right: 0.5rem;"></i> Grafik Aktivitas Mingguan</h3>
+    <!-- Charts & Activity -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+        <div class="content-card">
+            <div class="card-header">
+                <h4 class="card-title">Statistik Jimpitan Mingguan</h4>
+                <div style="display: flex; gap: 0.5rem;">
+                   <span class="badge badge-success">Live</span>
                 </div>
-                <div class="card-body" style="padding: 1.5rem;">
-                    <div class="chart-container">
-                        <canvas id="jimpitanChart"></canvas>
+            </div>
+            <div style="padding: 1.5rem; height: 350px;">
+                <canvas id="jimpitanChart"></canvas>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h4 class="card-title">Aktivitas Terakhir</h4>
+            </div>
+            <div style="padding: 1rem;">
+                <!-- Activity List Mockup -->
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    @forelse($recentActivities as $activity)
+                    <div style="display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem; border-radius: 0.75rem; background: #f8fafc;">
+                        <div style="width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid #e2e8f0;">
+                            <i class="fas fa-circle-check" style="color: var(--success);"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.8rem; font-weight: 700;">{{ $activity->warga->nama ?? 'Sistem' }}</p>
+                            <p style="font-size: 0.7rem; color: var(--text-muted);">{{ $activity->keterangan }}</p>
+                            <p style="font-size: 0.65rem; color: var(--primary); margin-top: 0.25rem;">{{ $activity->created_at->diffForHumans() }}</p>
+                        </div>
+                    </div>
+                    @empty
+                    <p style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada aktivitas hari ini.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals Section -->
+    <div id="summaryModal" class="modal-overlay" onclick="handleOverlayClick(event, 'summaryModal')">
+        <div class="modal-pro">
+            <div class="card-header">
+                <h3 class="card-title">Detail Aliran Kas</h3>
+                <button onclick="closeModal('summaryModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="padding: 2rem;">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="padding: 1.25rem; background: #f0fdf4; border-radius: 1rem; border: 1px solid #bbf7d0; display: flex; justify-content: space-between;">
+                        <span>Total Pemasukan Jimpitan</span>
+                        <strong style="color: #166534;">Rp {{ number_format($totalJimpitan, 0, ',', '.') }}</strong>
+                    </div>
+                    <div style="padding: 1.25rem; background: #eff6ff; border-radius: 1rem; border: 1px solid #bfdbfe; display: flex; justify-content: space-between;">
+                        <span>Total Pemasukan Top Up</span>
+                        <strong style="color: #1e40af;">Rp {{ number_format($totalTopup, 0, ',', '.') }}</strong>
+                    </div>
+                    <div style="padding: 1.25rem; background: #fef2f2; border-radius: 1rem; border: 1px solid #fecaca; display: flex; justify-content: space-between;">
+                        <span>Total Pengeluaran</span>
+                        <strong style="color: #991b1b;">- Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</strong>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 0.5rem 0;">
+                    <div style="padding: 1.25rem; background: #f8fafc; border-radius: 1rem; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 1.1rem;">
+                        <strong>Saldo Akhir</strong>
+                        <strong>Rp {{ number_format($totalKas, 0, ',', '.') }}</strong>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="card glass-card">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-star" style="color: var(--warning); margin-right: 0.5rem;"></i> Warga dengan Saldo Tertinggi</h3>
-                </div>
+    <!-- Warga Lunas Modal -->
+    <div id="lunasModal" class="modal-overlay" onclick="handleOverlayClick(event, 'lunasModal')">
+        <div class="modal-pro" style="max-width: 600px;">
+            <div class="card-header">
+                <h3 class="card-title">Warga Sudah Bayar Hari Ini</h3>
+                <button onclick="closeModal('lunasModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="padding: 1.5rem; max-height: 400px; overflow-y: auto;">
                 <div class="table-responsive">
-                    <table style="border: none;">
+                    <table>
                         <thead>
                             <tr>
-                                <th>Nama Warga</th>
-                                <th>Saldo Terkini</th>
+                                <th>Nama</th>
+                                <th>Waktu</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($topBalanceWarga as $w)
+                            @foreach($wargaLunas as $warga)
                             <tr>
-                                <td style="font-weight: 600;">{{ $w->nama }}</td>
-                                <td style="color: var(--success); font-weight: 700;">Rp {{ number_format($w->saldo, 0, ',', '.') }}</td>
-                                <td><span class="badge badge-success">Aktif</span></td>
+                                <td style="font-weight: 700;">{{ $warga->nama }}</td>
+                                <td style="font-size: 0.75rem;">{{ $warga->transaksis()->whereDate('created_at', now())->latest()->first()->created_at->format('H:i') }}</td>
+                                <td><span class="badge badge-success">Lunas</span></td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -109,67 +179,148 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Right Side: Recent Activities -->
-        <div class="card glass-card">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="card-title"><i class="fas fa-bell" style="color: var(--primary); margin-right: 0.5rem;"></i> Aktivitas Terakhir</h3>
-                <span class="badge badge-info" style="font-size: 0.65rem;">LIVE</span>
+    <!-- Belum Bayar Modal -->
+    <div id="belumBayarModal" class="modal-overlay" onclick="handleOverlayClick(event, 'belumBayarModal')">
+        <div class="modal-pro" style="max-width: 600px;">
+            <div class="card-header">
+                <h3 class="card-title">Warga Belum Bayar Hari Ini</h3>
+                <button onclick="closeModal('belumBayarModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
             </div>
-            <div style="padding: 1rem;">
-                @forelse($recentTransactions as $tx)
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; position: relative;">
-                        <div style="display: flex; flex-direction: column; align-items: center; z-index: 1;">
-                            <div style="width: 32px; height: 32px; background: {{ $tx->jenis == 'topup' ? 'var(--success)' : 'var(--primary)' }}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <i class="fas {{ $tx->jenis == 'topup' ? 'fa-plus' : 'fa-check' }}"></i>
-                            </div>
-                            @if(!$loop->last)
-                            <div style="width: 2px; height: calc(100% + 0.25rem); background: #e2e8f0; margin-top: 0.25rem;"></div>
-                            @endif
-                        </div>
-                        <div style="flex: 1; padding-bottom: 0.75rem;">
-                            <p style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.15rem;">{{ $tx->warga->nama }}</p>
-                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">{{ $tx->jenis == 'topup' ? 'Melakukan Top Up' : 'Bayar Jimpitan' }}</p>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.75rem; font-weight: 700; color: {{ $tx->jenis == 'topup' ? 'var(--success)' : 'var(--text-main)' }}">
-                                    {{ $tx->jenis == 'topup' ? '+' : '-' }}Rp{{ number_format($tx->nominal, 0, ',', '.') }}
-                                </span>
-                                <span style="font-size: 0.65rem; color: var(--text-muted);">{{ $tx->created_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div style="text-align: center; padding: 2rem 0;">
-                        <i class="fas fa-clipboard-list" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 1rem;"></i>
-                        <p style="color: var(--text-muted); font-size: 0.875rem;">Belum ada aktivitas.</p>
-                    </div>
-                @endforelse
-            </div>
-            <div style="padding: 1.5rem; border-top: 1px solid var(--border);">
-                <a href="{{ route('transaksi.index') }}" class="btn btn-outline" style="width: 100%; justify-content: center; border-radius: 0.75rem;">Lihat Log Lengkap</a>
+            <div style="padding: 1.5rem; max-height: 400px; overflow-y: auto;">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Tunggakan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($wargaBelumBayar as $warga)
+                            <tr>
+                                <td style="font-weight: 700;">{{ $warga->nama }}</td>
+                                <td style="color: var(--danger); font-weight: 700;">Rp {{ number_format($warga->tunggakan, 0, ',', '.') }}</td>
+                                <td><button class="btn-header" onclick="closeModal('belumBayarModal'); location.href='{{ route('scan.index') }}'">Tagih</button></td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Top Up Modal -->
+    <div id="topupModal" class="modal-overlay" onclick="handleOverlayClick(event, 'topupModal')">
+        <div class="modal-pro">
+            <div class="card-header">
+                <h3 class="card-title">Top Up Saldo Warga</h3>
+                <button onclick="closeModal('topupModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="padding: 2rem;">
+                <form action="{{ route('transaksi.topup') }}" method="POST">
+                    @csrf
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Pilih Warga</label>
+                        <select name="warga_id" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" required>
+                            <option value="">-- Cari Nama Warga --</option>
+                            @foreach($wargas as $w)
+                            <option value="{{ $w->id }}">{{ $w->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nominal (Rp)</label>
+                        <input type="number" name="nominal" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" placeholder="Contoh: 10000" required>
+                    </div>
+                    <button type="submit" class="btn-header primary" style="width: 100%; padding: 1rem; border-radius: 1rem;">Proses Top Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spending Modal -->
+    <div id="spendingModal" class="modal-overlay" onclick="handleOverlayClick(event, 'spendingModal')">
+        <div class="modal-pro">
+            <div class="card-header">
+                <h3 class="card-title">Catat Pengeluaran Kas</h3>
+                <button onclick="closeModal('spendingModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="padding: 2rem;">
+                <form action="{{ route('transaksi.pengeluaran') }}" method="POST">
+                    @csrf
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Keterangan</label>
+                        <input type="text" name="keterangan" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" placeholder="Contoh: Beli sapu lidi" required>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nominal (Rp)</label>
+                        <input type="number" name="nominal" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" placeholder="Contoh: 50000" required>
+                    </div>
+                    <button type="submit" class="btn-header primary" style="width: 100%; padding: 1rem; border-radius: 1rem; background: var(--danger);">Simpan Pengeluaran</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Zoom Modal -->
+    <div id="qrZoomModal" class="modal-overlay" onclick="handleOverlayClick(event, 'qrZoomModal')">
+        <div class="modal-pro" style="max-width: 400px; text-align: center;">
+            <div class="card-header">
+                <h3 class="card-title">QR Code Warga</h3>
+                <button onclick="closeModal('qrZoomModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="padding: 2.5rem;">
+                <div id="qrZoomContainer" style="display: flex; justify-content: center; margin-bottom: 1rem;"></div>
+                <p id="qrZoomName" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main);"></p>
+                <p id="qrZoomString" style="font-family: monospace; color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;"></p>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
+    // QR Zoom Logic
+    function zoomQR(nama, string) {
+        const container = document.getElementById('qrZoomContainer');
+        container.innerHTML = '';
+        document.getElementById('qrZoomName').innerText = nama;
+        document.getElementById('qrZoomString').innerText = string;
+        
+        new QRCode(container, {
+            text: string,
+            width: 250,
+            height: 250,
+            colorDark: "#1e293b",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        openModal('qrZoomModal');
+    }
+
+    // Chart Initialization
     const ctx = document.getElementById('jimpitanChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: @json($chartData['labels']),
+            labels: @json($chartLabels),
             datasets: [{
                 label: 'Pemasukan (Rp)',
-                data: @json($chartData['values']),
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                data: @json($chartData),
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                borderWidth: 3,
                 fill: true,
                 tension: 0.4,
-                borderWidth: 3,
-                pointBackgroundColor: '#6366f1',
-                pointRadius: 5
+                pointRadius: 4,
+                pointBackgroundColor: '#4f46e5'
             }]
         },
         options: {
@@ -182,17 +333,26 @@
                 y: {
                     beginAtZero: true,
                     grid: { color: '#f1f5f9' },
-                    ticks: {
-                        callback: function(value) {
-                            return 'Rp ' + value.toLocaleString('id-ID');
-                        }
-                    }
+                    ticks: { font: { family: 'Inter' } }
                 },
                 x: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    ticks: { font: { family: 'Inter' } }
                 }
             }
         }
     });
+
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function handleOverlayClick(e, id) {
+        if (e.target.id === id) closeModal(id);
+    }
 </script>
 @endpush

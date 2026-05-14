@@ -92,24 +92,28 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Pembayaran Berhasil',
-                    text: data.message,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-
-                // Show info card
-                document.getElementById('scan-success-card').style.display = 'block';
-                document.getElementById('success-nama').innerText = data.data.nama;
-                document.getElementById('success-saldo').innerText = 'Rp ' + data.data.saldo_sisa.toLocaleString('id-ID');
-
-                // Resume scanning after 3 seconds
-                setTimeout(() => {
-                    html5QrCode.resume();
-                    document.getElementById('result').style.display = 'none';
-                }, 3000);
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `
+                    <div style="text-align: center; animation: pulse 1s infinite;">
+                        <div style="width: 80px; height: 80px; background: var(--success); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-main);">Berhasil!</h3>
+                        <p style="font-weight: 700; color: var(--primary); font-size: 1.25rem; margin-bottom: 0.25rem;">${data.data.nama}</p>
+                        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">Saldo Sisa: Rp ${new Intl.NumberFormat('id-ID').format(data.data.saldo_sisa)}</p>
+                        <button onclick="resumeScan()" class="btn btn-primary" style="width: 100%; justify-content: center;">Scan Lagi</button>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+                
+                // Sound Effect
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                oscillator.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -127,6 +131,15 @@
             });
         });
     };
+
+    function onScanFailure(error) {
+        // console.warn(`Code scan error = ${error}`);
+    }
+
+    function resumeScan() {
+        document.getElementById('result').style.display = 'none';
+        html5QrCode.resume();
+    }
 
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 

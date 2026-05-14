@@ -21,6 +21,7 @@ class TransaksiController extends Controller
         $request->validate([
             'warga_id' => 'required|exists:wargas,id',
             'nominal' => 'required|numeric|min:1',
+            'metode_pembayaran' => 'required|string',
         ]);
 
         $warga = Warga::findOrFail($request->warga_id);
@@ -30,8 +31,9 @@ class TransaksiController extends Controller
             'warga_id' => $warga->id,
             'user_id' => Auth::id(),
             'nominal' => $request->nominal,
+            'metode_pembayaran' => $request->metode_pembayaran,
             'jenis' => 'topup',
-            'keterangan' => 'Top Up Saldo',
+            'keterangan' => 'Top Up Saldo via ' . $request->metode_pembayaran,
         ]);
 
         return back()->with('success', 'Top up berhasil.');
@@ -45,20 +47,74 @@ class TransaksiController extends Controller
 
         $warga = Warga::findOrFail($request->warga_id);
         
-        if ($warga->saldo < 500) {
-            return back()->with('error', 'Saldo warga tidak cukup.');
+        $today = date('Y-m-d');
+        $exists = Transaksi::where('warga_id', $warga->id)
+                            ->whereDate('created_at', $today)
+                            ->where('jenis', 'jimpitan')
+                            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Warga ini sudah membayar hari ini.');
         }
 
-        $warga->decrement('saldo', 500);
+        $tagihan = 500 + $warga->tunggakan;
+
+        if ($warga->saldo < $tagihan) {
+            return back()->with('error', "Saldo tidak cukup. Tagihan: Rp " . number_format($tagihan, 0, ',', '.'));
+        }
+
+        $warga->decrement('saldo', $tagihan);
+        $warga->update(['tunggakan' => 0]);
 
         Transaksi::create([
             'warga_id' => $warga->id,
             'user_id' => Auth::id(),
-            'nominal' => 500,
+            'nominal' => $tagihan,
             'jenis' => 'jimpitan',
-            'keterangan' => 'Pembayaran Manual',
+            'metode_pembayaran' => 'Manual (Potong Saldo)',
+            'keterangan' => 'Bayar Jimpitan Manual' . ($tagihan > 500 ? ' (Termasuk tunggakan)' : ''),
         ]);
 
         return back()->with('success', 'Pembayaran berhasil.');
+    }
+
+    public function destroy($id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+        $warga = Warga::findOrFail($transaksi->warga_id);
+
+        if ($transaksi->jenis == 'jimpitan') {
+            // Refund saldo
+            $warga->increment('saldo', $transaksi->nominal);
+            // Jika transaksi hari ini dibatalkan, mungkin perlu tambah tunggakan? 
+            // Tapi biasanya 'batal' berarti salah input, jadi biarkan saja statusnya belum bayar.
+        } elseif ($transaksi->jenis == 'topup') {
+            if ($warga->saldo < $transaksi->nominal) {
+                return back()->with('error', 'Gagal membatalkan. Saldo warga sudah digunakan dan tidak cukup untuk dipotong kembali.');
+            }
+            $warga->decrement('saldo', $transaksi->nominal);
+        }
+
+        $transaksi->delete();
+
+        return back()->with('success', 'Transaksi berhasil dibatalkan dan saldo disesuaikan.');
+    }
+
+    public function storeExpenditure(Request $request)
+    {
+        $request->validate([
+            'nominal' => 'required|numeric|min:1',
+            'keterangan' => 'required|string',
+        ]);
+
+        Transaksi::create([
+            'user_id' => Auth::id(),
+            'nominal' => $request->nominal,
+            'jenis' => 'pengeluaran',
+            'metode_pembayaran' => 'Kas RT',
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return back()->with('success', 'Pengeluaran berhasil dicatat.');
     }
 }

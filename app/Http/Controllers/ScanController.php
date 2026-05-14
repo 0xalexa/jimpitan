@@ -44,22 +44,27 @@ class ScanController extends Controller
             ]);
         }
 
-        if ($warga->saldo < 500) {
+        // Cek tagihan (500 harian + tunggakan)
+        $tagihan = 500 + $warga->tunggakan;
+
+        if ($warga->saldo < $tagihan) {
             return response()->json([
                 'success' => false,
-                'message' => 'Saldo warga ' . $warga->nama . ' tidak cukup (Sisa: Rp' . number_format($warga->saldo, 0, ',', '.') . ').'
+                'message' => "Saldo tidak cukup. Tagihan hari ini: Rp " . number_format($tagihan, 0, ',', '.')
             ]);
         }
 
-        // Process deduction
-        $warga->decrement('saldo', 500);
+        // Proses pembayaran
+        $warga->decrement('saldo', $tagihan);
+        $warga->update(['tunggakan' => 0]);
 
         Transaksi::create([
             'warga_id' => $warga->id,
             'user_id' => Auth::id(),
-            'nominal' => 500,
+            'nominal' => $tagihan,
             'jenis' => 'jimpitan',
-            'keterangan' => 'Pembayaran via QR Scan',
+            'metode_pembayaran' => 'Saldo Digital',
+            'keterangan' => 'Bayar Jimpitan' . ($tagihan > 500 ? ' (Termasuk tunggakan)' : '')
         ]);
 
         return response()->json([
