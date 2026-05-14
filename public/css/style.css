@@ -38,13 +38,16 @@ body {
 ::-webkit-scrollbar {
     width: 6px;
 }
+
 ::-webkit-scrollbar-track {
     background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
@@ -316,7 +319,7 @@ body {
     right: -50px;
     width: 200px;
     height: 200px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
 }
 
@@ -364,18 +367,18 @@ body {
 
 .btn-hero.white:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .btn-hero.glass {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
     color: white;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-hero.glass:hover {
-    background: rgba(255,255,255,0.25);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 /* Stats Cards */
@@ -441,8 +444,13 @@ body {
     font-weight: 600;
 }
 
-.trend-up { color: var(--success); }
-.trend-down { color: var(--danger); }
+.trend-up {
+    color: var(--success);
+}
+
+.trend-down {
+    color: var(--danger);
+}
 
 /* Activity Table Card */
 .content-card {
@@ -502,9 +510,31 @@ td {
     font-weight: 700;
 }
 
-.badge-success { background: #d1fae5; color: #065f46; }
-.badge-danger { background: #fee2e2; color: #991b1b; }
-.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-info {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.badge-primary {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
 
 /* Modal Pro */
 .modal-overlay {
@@ -527,13 +557,20 @@ td {
     width: 100%;
     max-width: 500px;
     border-radius: var(--radius-lg);
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes modalIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Mouse Glow Effect */
@@ -551,17 +588,37 @@ td {
 
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.active { transform: translateX(0); }
-    .main-wrapper { margin-left: 0 !important; }
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-wrapper {
+        margin-left: 0 !important;
+    }
 }
 
 @media (max-width: 768px) {
-    .top-header { padding: 0 1.25rem; }
-    .content-area { padding: 1.5rem; }
-    .hero-banner { padding: 2rem; }
-    .hero-title { font-size: 1.75rem; }
+    .top-header {
+        padding: 0 1.25rem;
+    }
+
+    .content-area {
+        padding: 1.5rem;
+    }
+
+    .hero-banner {
+        padding: 2rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
 }
+
 /* Auth Pages */
 .auth-wrapper {
     min-height: 100vh;
@@ -590,10 +647,10 @@ td {
     max-width: 450px;
     padding: 3rem;
     border-radius: 2rem;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
     position: relative;
     z-index: 2;
-    border: 1px solid rgba(255,255,255,0.8);
+    border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .form-group {
@@ -625,6 +682,7 @@ td {
     background: white;
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
+
 /* Global Components */
 .card {
     background: white;
@@ -691,6 +749,13 @@ td {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
