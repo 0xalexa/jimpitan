@@ -20,6 +20,9 @@
                 <button onclick="openModal('spendingModal')" class="btn-hero glass">
                     <i class="fas fa-receipt"></i> Catat Pengeluaran
                 </button>
+                <button onclick="openModal('donationModal')" class="btn-hero glass">
+                    <i class="fas fa-hand-holding-heart"></i> Donasi Kas
+                </button>
             </div>
         </div>
     </div>
@@ -138,6 +141,10 @@
                     <div style="padding: 1.25rem; background: #fef2f2; border-radius: 1rem; border: 1px solid #fecaca; display: flex; justify-content: space-between;">
                         <span>Total Pengeluaran</span>
                         <strong style="color: #991b1b;">- Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</strong>
+                    </div>
+                    <div style="padding: 1.25rem; background: #fff7ed; border-radius: 1rem; border: 1px solid #ffedd5; display: flex; justify-content: space-between;">
+                        <span>Total Donasi Kas</span>
+                        <strong style="color: #9a3412;">+ Rp {{ number_format($totalDonasi, 0, ',', '.') }}</strong>
                     </div>
                     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 0.5rem 0;">
                     <div style="padding: 1.25rem; background: #f8fafc; border-radius: 1rem; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 1.1rem;">
@@ -266,6 +273,34 @@
         </div>
     </div>
 
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal-overlay" onclick="handleOverlayClick(event, 'donationModal')">
+        <div class="modal-pro">
+            <div class="card-header">
+                <h3 class="card-title">Terima Donasi Kas</h3>
+                <button onclick="closeModal('donationModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="padding: 2rem;">
+                <form action="{{ route('transaksi.donasi') }}" method="POST">
+                    @csrf
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nama Donatur (Opsional)</label>
+                        <input type="text" name="nama_donatur" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" placeholder="Contoh: Hamba Allah / Bpk. Andi">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Keterangan Donasi</label>
+                        <input type="text" name="keterangan" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" placeholder="Contoh: Untuk santunan anak yatim" required>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nominal Donasi (Rp)</label>
+                        <input type="number" name="nominal" class="btn-header" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem;" placeholder="Contoh: 100000" required>
+                    </div>
+                    <button type="submit" class="btn-header primary" style="width: 100%; padding: 1rem; border-radius: 1rem; background: var(--success);">Simpan Donasi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- QR Zoom Modal -->
     <div id="qrZoomModal" class="modal-overlay" onclick="handleOverlayClick(event, 'qrZoomModal')">
         <div class="modal-pro" style="max-width: 400px; text-align: center;">
@@ -278,6 +313,41 @@
                 <p id="qrZoomName" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main);"></p>
                 <p id="qrZoomString" style="font-family: monospace; color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;"></p>
             </div>
+        </div>
+    </div>
+
+    <!-- Summary per RT -->
+    <div class="content-card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h4 class="card-title">Sebaran Saldo per Wilayah (RT/RW)</h4>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="padding-left: 2rem;">Wilayah</th>
+                        <th>Total Warga</th>
+                        <th>Total Saldo Digital</th>
+                        <th style="text-align: right; padding-right: 2rem;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($statsPerRT as $stat)
+                    <tr>
+                        <td style="padding-left: 2rem; font-weight: 800;">RT {{ $stat->rt }} / RW {{ $stat->rw }}</td>
+                        <td>{{ $stat->total_warga }} Orang</td>
+                        <td style="font-weight: 700; color: var(--primary);">Rp {{ number_format($stat->total_saldo, 0, ',', '.') }}</td>
+                        <td style="text-align: right; padding-right: 2rem;">
+                            <span class="badge badge-success">Aktif</span>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada data wilayah.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 

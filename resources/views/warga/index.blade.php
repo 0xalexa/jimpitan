@@ -8,25 +8,63 @@
 <div class="card">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <h3 class="card-title">Daftar Warga RT/RW</h3>
-        <div style="display: flex; gap: 1rem; align-items: center; flex: 1; justify-content: flex-end;">
-            <div style="position: relative; flex: 1; max-width: 300px;">
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; width: 100%; justify-content: flex-end;">
+            <div style="position: relative; flex: 1; max-width: 250px;">
                 <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                <input type="text" id="wargaSearch" class="form-control" placeholder="Cari nama atau NIK..." style="padding-left: 2.5rem; border-radius: 2rem;">
+                <input type="text" id="wargaSearch" class="form-control" placeholder="Nama/NIK..." style="padding-left: 2.5rem; border-radius: 1rem;">
             </div>
+            
+            <form action="{{ route('warga.index') }}" method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+                <select name="rt" class="form-control" style="width: 80px; border-radius: 0.75rem;" onchange="this.form.submit()">
+                    <option value="">RT</option>
+                    @foreach($rtList as $rt)
+                        <option value="{{ $rt }}" {{ request('rt') == $rt ? 'selected' : '' }}>{{ $rt }}</option>
+                    @endforeach
+                </select>
+                <select name="rw" class="form-control" style="width: 80px; border-radius: 0.75rem;" onchange="this.form.submit()">
+                    <option value="">RW</option>
+                    @foreach($rwList as $rw)
+                        <option value="{{ $rw }}" {{ request('rw') == $rw ? 'selected' : '' }}>{{ $rw }}</option>
+                    @endforeach
+                </select>
+                @if(request('rt') || request('rw'))
+                    <a href="{{ route('warga.index') }}" class="btn btn-outline" style="padding: 0.5rem; border-radius: 0.75rem;" title="Reset Filter">
+                        <i class="fas fa-times"></i>
+                    </a>
+                @endif
+            </form>
+
             <button onclick="exportToCSV()" class="btn btn-outline" style="border-radius: 1rem;">
                 <i class="fas fa-file-export"></i> Export
             </button>
-            <a href="{{ route('warga.create') }}" class="btn btn-primary" style="border-radius: 1rem;">
+            <button onclick="openModal('addWargaModal')" class="btn btn-primary" style="border-radius: 1rem;">
                 <i class="fas fa-plus"></i> Tambah Warga
-            </a>
+            </button>
         </div>
     </div>
+
+    @if(request('rt') || request('rw'))
+    <div style="padding: 1rem 2.5rem; background: #eff6ff; border-bottom: 1px solid #bfdbfe; display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid #bfdbfe;">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <div>
+            <p style="font-size: 0.75rem; color: #1e40af; font-weight: 700; text-transform: uppercase; margin: 0;">Total Saldo Wilayah 
+                @if(request('rt')) RT {{ request('rt') }} @endif
+                @if(request('rw')) RW {{ request('rw') }} @endif
+            </p>
+            <h4 style="font-size: 1.25rem; font-weight: 800; color: #1e3a8a; margin: 0;">Rp {{ number_format($totalSaldoFiltered, 0, ',', '.') }}</h4>
+        </div>
+    </div>
+    @endif
+
     <div class="table-responsive">
         <table>
             <thead>
                 <tr>
                     <th style="width: 80px;">QR Code</th>
                     <th>Nama / NIK</th>
+                    <th>RT/RW</th>
                     <th>Alamat</th>
                     <th>Saldo</th>
                     <th>Tunggakan</th>
@@ -49,6 +87,7 @@
                         <div style="font-weight: 700;">{{ $warga->nama }}</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">{{ $warga->nik }}</div>
                     </td>
+                    <td style="font-weight: 700;">{{ $warga->rt ?? '-' }}/{{ $warga->rw ?? '-' }}</td>
                     <td>{{ $warga->alamat }}</td>
                     <td>
                         <span style="font-weight: 700; color: {{ $warga->saldo < 500 ? 'var(--danger)' : 'var(--success)' }}">
@@ -81,6 +120,9 @@
                             <a href="{{ route('warga.edit', $warga->id) }}" class="btn btn-outline" style="padding: 0.5rem;" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            <button class="btn btn-outline" style="padding: 0.5rem; color: var(--danger);" onclick="confirmDeleteWarga({{ $warga->id }}, '{{ $warga->nama }}')" title="Hapus Warga">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -107,41 +149,85 @@
 
 
 <!-- Modal Top Up -->
-<div class="modal-overlay" id="topupModal">
-    <div class="modal glass-card" style="max-width: 500px;">
-        <div class="modal-header">
-            <h3>Top Up Saldo - <span id="topupWargaName"></span></h3>
-            <button onclick="closeModal('topupModal')">&times;</button>
+<div id="topupModal" class="modal-overlay" onclick="handleOverlayClick(event, 'topupModal')">
+    <div class="modal-pro">
+        <div class="card-header">
+            <h3 class="card-title">Top Up Saldo - <span id="topupWargaName"></span></h3>
+            <button onclick="closeModal('topupModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
         </div>
         <div style="padding: 2rem;">
             <form action="{{ route('transaksi.topup') }}" method="POST">
                 @csrf
                 <input type="hidden" name="warga_id" id="topupWargaId">
                 <div class="form-group">
-                    <label>Nominal Top Up (Rp)</label>
-                    <input type="number" name="nominal" class="form-control" placeholder="Contoh: 10000" required style="border-radius: 1rem; padding: 0.75rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nominal Top Up (Rp)</label>
+                    <input type="number" name="nominal" class="form-control" placeholder="Contoh: 10000" required style="border-radius: 0.75rem;">
                 </div>
                 <div class="form-group" style="margin-top: 1.5rem;">
-                    <label>Metode Pembayaran</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
-                        <label class="payment-option">
-                            <input type="radio" name="metode_pembayaran" value="Tunai" checked>
-                            <div class="payment-box">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <span>Tunai</span>
-                            </div>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="metode_pembayaran" value="Transfer Bank">
-                            <div class="payment-box">
-                                <i class="fas fa-university"></i>
-                                <span>Transfer</span>
-                            </div>
-                        </label>
-                    </div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Metode Pembayaran</label>
+                    <select name="metode_pembayaran" class="form-control" required style="border-radius: 0.75rem;">
+                        <option value="Tunai">Tunai</option>
+                        <option value="Transfer Bank">Transfer Bank</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem; border-radius: 1.25rem; font-weight: 700;">
                     Proses Top Up
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Warga -->
+<div id="addWargaModal" class="modal-overlay" onclick="handleOverlayClick(event, 'addWargaModal')">
+    <div class="modal-pro" style="max-width: 600px;">
+        <div class="card-header">
+            <h3 class="card-title">Tambah Warga Baru</h3>
+            <button onclick="closeModal('addWargaModal')" style="border:none; background:none; cursor:pointer; font-size: 1.5rem;">&times;</button>
+        </div>
+        <div style="padding: 2rem;">
+            <form action="{{ route('warga.store') }}" method="POST">
+                @csrf
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">NIK (16 Digit)</label>
+                        <input type="text" name="nik" class="form-control" placeholder="1234567890123456" required style="border-radius: 0.75rem;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Contoh: Budi Santoso" required style="border-radius: 0.75rem;">
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Alamat Lengkap</label>
+                    <textarea name="alamat" class="form-control" rows="2" placeholder="Jl. Merdeka No. 123" style="border-radius: 0.75rem; width: 100%; padding: 0.75rem; border: 1px solid var(--border);"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">RT</label>
+                        <input type="text" name="rt" class="form-control" placeholder="001" style="border-radius: 0.75rem;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">RW</label>
+                        <input type="text" name="rw" class="form-control" placeholder="002" style="border-radius: 0.75rem;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">No. WhatsApp</label>
+                        <input type="text" name="no_hp" class="form-control" placeholder="0812..." style="border-radius: 0.75rem;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Saldo Awal (Rp)</label>
+                        <input type="number" name="saldo" class="form-control" value="0" required style="border-radius: 0.75rem;">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem; padding: 1rem; border-radius: 1.25rem; font-weight: 700;">
+                    Simpan Data Warga
                 </button>
             </form>
         </div>
@@ -210,6 +296,25 @@
         });
     }
 
+    function confirmDeleteWarga(id, nama) {
+        Swal.fire({
+            title: 'Hapus Data Warga?',
+            text: `Seluruh data dan riwayat transaksi ${nama} akan dihapus permanen!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('delete-warga-form');
+                form.action = `/warga/${id}`;
+                form.submit();
+            }
+        });
+    }
+
     
     // Search Functionality
     document.getElementById('wargaSearch').addEventListener('keyup', function() {
@@ -256,5 +361,10 @@
 <form id="manual-form" action="{{ route('transaksi.manual') }}" method="POST" style="display: none;">
     @csrf
     <input type="hidden" name="warga_id" id="manual-id">
+</form>
+
+<form id="delete-warga-form" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
 </form>
 @endpush

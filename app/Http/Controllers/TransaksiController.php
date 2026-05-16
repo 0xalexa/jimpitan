@@ -16,6 +16,40 @@ class TransaksiController extends Controller
         return view('transaksi.index', compact('transaksis'));
     }
 
+    public function export()
+    {
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=laporan_jimpitan_" . date('Y-m-d_H-i') . ".csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $transaksis = Transaksi::with(['warga', 'user'])->latest()->get();
+
+        $callback = function() use($transaksis) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Tanggal', 'Waktu', 'Nama Warga / Keterangan', 'Jenis', 'Nominal', 'Metode', 'Petugas']);
+
+            foreach ($transaksis as $tx) {
+                fputcsv($file, [
+                    $tx->created_at->format('d-m-Y'),
+                    $tx->created_at->format('H:i'),
+                    $tx->warga ? $tx->warga->nama : $tx->keterangan,
+                    strtoupper($tx->jenis),
+                    $tx->nominal,
+                    $tx->metode_pembayaran,
+                    $tx->user->name
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function topup(Request $request)
     {
         $request->validate([
@@ -81,23 +115,27 @@ class TransaksiController extends Controller
     public function destroy($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        $warga = Warga::findOrFail($transaksi->warga_id);
 
-        if ($transaksi->jenis == 'jimpitan') {
-            // Refund saldo
-            $warga->increment('saldo', $transaksi->nominal);
-            // Jika transaksi hari ini dibatalkan, mungkin perlu tambah tunggakan? 
-            // Tapi biasanya 'batal' berarti salah input, jadi biarkan saja statusnya belum bayar.
-        } elseif ($transaksi->jenis == 'topup') {
-            if ($warga->saldo < $transaksi->nominal) {
-                return back()->with('error', 'Gagal membatalkan. Saldo warga sudah digunakan dan tidak cukup untuk dipotong kembali.');
+        // Hanya proses penyesuaian saldo jika transaksi terkait dengan warga tertentu
+        if ($transaksi->warga_id) {
+            $warga = Warga::findOrFail($transaksi->warga_id);
+
+            if ($transaksi->jenis == 'jimpitan') {
+                // Refund saldo warga jika jimpitan dibatalkan
+                $warga->increment('saldo', $transaksi->nominal);
+            } elseif ($transaksi->jenis == 'topup') {
+                // Potong kembali saldo jika topup dibatalkan
+                if ($warga->saldo < $transaksi->nominal) {
+                    return back()->with('error', 'Gagal membatalkan. Saldo warga sudah digunakan dan tidak cukup untuk dipotong kembali.');
+                }
+                $warga->decrement('saldo', $transaksi->nominal);
             }
-            $warga->decrement('saldo', $transaksi->nominal);
         }
 
+        // Untuk Pengeluaran dan Donasi, penghapusan transaksi otomatis menyesuaikan Total Kas di Dashboard
         $transaksi->delete();
 
-        return back()->with('success', 'Transaksi berhasil dibatalkan dan saldo disesuaikan.');
+        return back()->with('success', 'Transaksi berhasil dibatalkan.');
     }
 
     public function storeExpenditure(Request $request)
@@ -108,6 +146,7 @@ class TransaksiController extends Controller
         ]);
 
         Transaksi::create([
+            'warga_id' => null,
             'user_id' => Auth::id(),
             'nominal' => $request->nominal,
             'jenis' => 'pengeluaran',
@@ -116,5 +155,25 @@ class TransaksiController extends Controller
         ]);
 
         return back()->with('success', 'Pengeluaran berhasil dicatat.');
+    }
+
+    public function storeDonation(Request $request)
+    {
+        $request->validate([
+            'nominal' => 'required|numeric|min:1',
+            'keterangan' => 'required|string',
+            'nama_donatur' => 'nullable|string',
+        ]);
+
+        Transaksi::create([
+            'warga_id' => null,
+            'user_id' => Auth::id(),
+            'nominal' => $request->nominal,
+            'jenis' => 'donasi',
+            'metode_pembayaran' => 'Tunai/Transfer',
+            'keterangan' => 'Donasi: ' . $request->keterangan . ($request->nama_donatur ? ' (Dari: ' . $request->nama_donatur . ')' : ''),
+        ]);
+
+        return back()->with('success', 'Donasi berhasil dicatat.');
     }
 }

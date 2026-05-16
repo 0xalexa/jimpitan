@@ -83,7 +83,7 @@
                             <i class="far fa-calendar"></i>
                             <span>{{ date('d M Y') }}</span>
                         </button>
-                        <button class="btn-header primary">
+                        <button class="btn-header primary" onclick="location.href='{{ route('transaksi.export') }}'">
                             <i class="fas fa-cloud-arrow-down"></i>
                             <span>Export Laporan</span>
                         </button>
