@@ -115,23 +115,27 @@ class TransaksiController extends Controller
     public function destroy($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        $warga = Warga::findOrFail($transaksi->warga_id);
 
-        if ($transaksi->jenis == 'jimpitan') {
-            // Refund saldo
-            $warga->increment('saldo', $transaksi->nominal);
-            // Jika transaksi hari ini dibatalkan, mungkin perlu tambah tunggakan? 
-            // Tapi biasanya 'batal' berarti salah input, jadi biarkan saja statusnya belum bayar.
-        } elseif ($transaksi->jenis == 'topup') {
-            if ($warga->saldo < $transaksi->nominal) {
-                return back()->with('error', 'Gagal membatalkan. Saldo warga sudah digunakan dan tidak cukup untuk dipotong kembali.');
+        // Hanya proses penyesuaian saldo jika transaksi terkait dengan warga tertentu
+        if ($transaksi->warga_id) {
+            $warga = Warga::findOrFail($transaksi->warga_id);
+
+            if ($transaksi->jenis == 'jimpitan') {
+                // Refund saldo warga jika jimpitan dibatalkan
+                $warga->increment('saldo', $transaksi->nominal);
+            } elseif ($transaksi->jenis == 'topup') {
+                // Potong kembali saldo jika topup dibatalkan
+                if ($warga->saldo < $transaksi->nominal) {
+                    return back()->with('error', 'Gagal membatalkan. Saldo warga sudah digunakan dan tidak cukup untuk dipotong kembali.');
+                }
+                $warga->decrement('saldo', $transaksi->nominal);
             }
-            $warga->decrement('saldo', $transaksi->nominal);
         }
 
+        // Untuk Pengeluaran dan Donasi, penghapusan transaksi otomatis menyesuaikan Total Kas di Dashboard
         $transaksi->delete();
 
-        return back()->with('success', 'Transaksi berhasil dibatalkan dan saldo disesuaikan.');
+        return back()->with('success', 'Transaksi berhasil dibatalkan.');
     }
 
     public function storeExpenditure(Request $request)
