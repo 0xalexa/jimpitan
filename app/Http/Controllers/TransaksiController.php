@@ -16,6 +16,40 @@ class TransaksiController extends Controller
         return view('transaksi.index', compact('transaksis'));
     }
 
+    public function export()
+    {
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=laporan_jimpitan_" . date('Y-m-d_H-i') . ".csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $transaksis = Transaksi::with(['warga', 'user'])->latest()->get();
+
+        $callback = function() use($transaksis) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Tanggal', 'Waktu', 'Nama Warga / Keterangan', 'Jenis', 'Nominal', 'Metode', 'Petugas']);
+
+            foreach ($transaksis as $tx) {
+                fputcsv($file, [
+                    $tx->created_at->format('d-m-Y'),
+                    $tx->created_at->format('H:i'),
+                    $tx->warga ? $tx->warga->nama : $tx->keterangan,
+                    strtoupper($tx->jenis),
+                    $tx->nominal,
+                    $tx->metode_pembayaran,
+                    $tx->user->name
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function topup(Request $request)
     {
         $request->validate([
@@ -108,6 +142,7 @@ class TransaksiController extends Controller
         ]);
 
         Transaksi::create([
+            'warga_id' => null,
             'user_id' => Auth::id(),
             'nominal' => $request->nominal,
             'jenis' => 'pengeluaran',
@@ -116,5 +151,25 @@ class TransaksiController extends Controller
         ]);
 
         return back()->with('success', 'Pengeluaran berhasil dicatat.');
+    }
+
+    public function storeDonation(Request $request)
+    {
+        $request->validate([
+            'nominal' => 'required|numeric|min:1',
+            'keterangan' => 'required|string',
+            'nama_donatur' => 'nullable|string',
+        ]);
+
+        Transaksi::create([
+            'warga_id' => null,
+            'user_id' => Auth::id(),
+            'nominal' => $request->nominal,
+            'jenis' => 'donasi',
+            'metode_pembayaran' => 'Tunai/Transfer',
+            'keterangan' => 'Donasi: ' . $request->keterangan . ($request->nama_donatur ? ' (Dari: ' . $request->nama_donatur . ')' : ''),
+        ]);
+
+        return back()->with('success', 'Donasi berhasil dicatat.');
     }
 }

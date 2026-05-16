@@ -66,6 +66,8 @@
                                 <span class="badge badge-success"><i class="fas fa-arrow-up"></i> TOP UP</span>
                             @elseif($tx->jenis == 'jimpitan')
                                 <span class="badge badge-primary"><i class="fas fa-coins"></i> JIMPITAN</span>
+                            @elseif($tx->jenis == 'donasi')
+                                <span class="badge badge-info"><i class="fas fa-hand-holding-heart"></i> DONASI</span>
                             @else
                                 <span class="badge badge-danger"><i class="fas fa-arrow-down"></i> PENGELUARAN</span>
                             @endif

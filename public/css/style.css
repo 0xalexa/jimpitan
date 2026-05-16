@@ -262,7 +262,15 @@ body {
     gap: 1rem;
 }
 
+.header-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+}
+
 .btn-header {
+    white-space: nowrap;
     padding: 0.625rem 1.25rem;
     border-radius: 0.75rem;
     font-weight: 600;
@@ -758,4 +766,113 @@ td {
         opacity: 1;
         transform: translateY(0);
     }
+}
+/* Scanner Modern UI */
+.scanner-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    background: #000;
+    box-shadow: var(--shadow-lg);
+    border: 4px solid var(--border);
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, transparent, var(--primary), transparent);
+    z-index: 10;
+    animation: scanMove 2s infinite linear;
+    box-shadow: 0 0 15px var(--primary);
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    background: linear-gradient(rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.2) 100%);
+    pointer-events: none;
+}
+
+.scanner-corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--primary);
+    z-index: 10;
+}
+
+.corner-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
+.corner-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; border-radius: 0 8px 0 0; }
+.corner-bl { bottom: 20px; left: 20px; border-right: none; border-top: none; border-radius: 0 0 0 8px; }
+.corner-br { bottom: 20px; right: 20px; border-left: none; border-top: none; border-radius: 0 0 8px 0; }
+
+@keyframes scanMove {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+@keyframes pulseSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.success-pulse {
+    animation: pulseSuccess 0.5s ease-in-out;
+}
+
+/* Pagination Styling Modern */
+.pagination {
+    display: flex;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+}
+
+.page-item .page-link {
+    padding: 0.6rem 1rem;
+    border-radius: 0.8rem;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.page-item.active .page-link {
+    background: var(--primary);
+    color: white !important;
+    border-color: var(--primary);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+.page-item:hover:not(.active):not(.disabled) .page-link {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #f1f5f9;
+    transform: translateY(-1px);
 }

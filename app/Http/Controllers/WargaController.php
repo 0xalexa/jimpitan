@@ -8,10 +8,24 @@ use App\Models\Warga;
 
 class WargaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $wargas = Warga::all();
-        return view('warga.index', compact('wargas'));
+        $query = Warga::query();
+
+        if ($request->has('rt') && $request->rt != '') {
+            $query->where('rt', $request->rt);
+        }
+        if ($request->has('rw') && $request->rw != '') {
+            $query->where('rw', $request->rw);
+        }
+
+        $wargas = $query->get();
+        $totalSaldoFiltered = $query->sum('saldo');
+        
+        $rtList = Warga::whereNotNull('rt')->distinct()->pluck('rt')->sort();
+        $rwList = Warga::whereNotNull('rw')->distinct()->pluck('rw')->sort();
+
+        return view('warga.index', compact('wargas', 'rtList', 'rwList', 'totalSaldoFiltered'));
     }
 
     public function create()
@@ -25,6 +39,8 @@ class WargaController extends Controller
             'nik' => 'required|unique:wargas',
             'nama' => 'required',
             'alamat' => 'nullable',
+            'rt' => 'nullable|string|max:3',
+            'rw' => 'nullable|string|max:3',
             'no_hp' => 'nullable',
             'saldo' => 'required|numeric|min:0',
         ]);
@@ -52,6 +68,8 @@ class WargaController extends Controller
             'nik' => 'required|unique:wargas,nik,' . $warga->id,
             'nama' => 'required',
             'alamat' => 'nullable',
+            'rt' => 'nullable|string|max:3',
+            'rw' => 'nullable|string|max:3',
             'no_hp' => 'nullable',
             'saldo' => 'required|numeric|min:0',
         ]);

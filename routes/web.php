@@ -25,9 +25,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('warga', WargaController::class);
     
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
+    Route::get('/transaksi/export', [TransaksiController::class, 'export'])->name('transaksi.export');
     Route::post('/transaksi/topup', [TransaksiController::class, 'topup'])->name('transaksi.topup');
     Route::post('/transaksi/manual', [TransaksiController::class, 'manualPayment'])->name('transaksi.manual');
     Route::post('/transaksi/pengeluaran', [TransaksiController::class, 'storeExpenditure'])->name('transaksi.pengeluaran');
+    Route::post('/transaksi/donasi', [TransaksiController::class, 'storeDonation'])->name('transaksi.donasi');
     Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
     
     Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');

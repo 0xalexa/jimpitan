@@ -11,14 +11,24 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-camera"></i> Scanner Kamera</h3>
         </div>
-        <div style="padding: 1.5rem; text-align: center;">
-            <div id="reader" style="width: 100%; border-radius: 1rem; overflow: hidden; background: #000;"></div>
-            <div id="result" style="margin-top: 1.5rem; display: none;">
+        <div style="padding: 2rem; text-align: center;">
+            <div class="scanner-container">
+                <div class="scan-line"></div>
+                <div class="scanner-overlay"></div>
+                <div class="scanner-corner corner-tl"></div>
+                <div class="scanner-corner corner-tr"></div>
+                <div class="scanner-corner corner-bl"></div>
+                <div class="scanner-corner corner-br"></div>
+                <div id="reader" style="width: 100%; border: none;"></div>
+            </div>
+            
+            <div id="result" style="margin-top: 2rem; display: none;">
                 <div class="badge badge-info" id="scanned-text">Memproses...</div>
             </div>
-            <div style="margin-top: 1.5rem;">
-                <p style="font-size: 0.875rem; color: var(--text-muted);">
-                    Arahkan kamera ke QR Code warga untuk melakukan pemotongan saldo otomatis.
+            
+            <div style="margin-top: 2rem;">
+                <p style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
+                    Arahkan kamera ke QR Code warga untuk penarikan jimpitan otomatis.
                 </p>
             </div>
         </div>
@@ -92,6 +102,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                const scannerContainer = document.querySelector('.scanner-container');
+                scannerContainer.classList.add('success-pulse');
+                setTimeout(() => scannerContainer.classList.remove('success-pulse'), 500);
+
                 const resultDiv = document.getElementById('result');
                 resultDiv.innerHTML = `
                     <div style="text-align: center; animation: pulse 1s infinite;">

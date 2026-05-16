@@ -24,6 +24,16 @@
                 <label for="alamat">Alamat</label>
                 <textarea name="alamat" id="alamat" class="form-control" rows="3">{{ $warga->alamat }}</textarea>
             </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="rt">RT</label>
+                    <input type="text" name="rt" id="rt" class="form-control" value="{{ $warga->rt }}" placeholder="001">
+                </div>
+                <div class="form-group">
+                    <label for="rw">RW</label>
+                    <input type="text" name="rw" id="rw" class="form-control" value="{{ $warga->rw }}" placeholder="002">
+                </div>
+            </div>
             <div class="form-group">
                 <label for="no_hp">No. WhatsApp</label>
                 <input type="text" name="no_hp" id="no_hp" class="form-control" value="{{ $warga->no_hp }}">

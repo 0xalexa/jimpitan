@@ -52,15 +52,28 @@ class DashboardController extends Controller
         $totalJimpitan = Transaksi::where('jenis', 'jimpitan')->sum('nominal');
         $totalTopup = Transaksi::where('jenis', 'topup')->sum('nominal');
         $totalPengeluaran = Transaksi::where('jenis', 'pengeluaran')->sum('nominal');
-        $totalKas = ($totalJimpitan + $totalTopup) - $totalPengeluaran;
+        $totalDonasi = Transaksi::where('jenis', 'donasi')->sum('nominal');
+        
+        // Total Kas RT = Saldo semua warga + (Total Jimpitan + Total Donasi - Total Pengeluaran)
+        $totalKas = Warga::sum('saldo') + ($totalJimpitan + $totalDonasi - $totalPengeluaran);
 
         $wargas = Warga::all();
+
+        // Stats per RT
+        $statsPerRT = Warga::select('rt', 'rw')
+            ->selectRaw('SUM(saldo) as total_saldo')
+            ->selectRaw('COUNT(*) as total_warga')
+            ->whereNotNull('rt')
+            ->groupBy('rt', 'rw')
+            ->orderBy('rt')
+            ->get();
 
         return view('dashboard.index', compact(
             'totalKas', 'totalWarga', 'pemasukanHariIni', 
             'wargaLunasCount', 'recentActivities', 'chartLabels', 'chartData',
             'topBalanceWarga', 'totalWargaBelumBayar',
-            'totalJimpitan', 'totalTopup', 'totalPengeluaran', 'wargaLunas', 'wargaBelumBayar', 'wargas'
+            'totalJimpitan', 'totalTopup', 'totalPengeluaran', 'totalDonasi', 'wargaLunas', 'wargaBelumBayar', 'wargas',
+            'statsPerRT'
         ));
     }
 
