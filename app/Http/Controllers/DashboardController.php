@@ -59,13 +59,14 @@ class DashboardController extends Controller
 
         $wargas = Warga::all();
 
-        // Stats per RT
-        $statsPerRT = Warga::select('rt', 'rw')
-            ->selectRaw('SUM(saldo) as total_saldo')
-            ->selectRaw('COUNT(*) as total_warga')
-            ->whereNotNull('rt')
-            ->groupBy('rt', 'rw')
-            ->orderBy('rt')
+        // Stats per RT (Hanya menghitung jimpitan yang terkumpul)
+        $statsPerRT = Warga::select('wargas.rt', 'wargas.rw')
+            ->selectRaw('COUNT(DISTINCT wargas.id) as total_warga')
+            ->selectRaw('COALESCE(SUM(CASE WHEN transaksis.jenis = "jimpitan" THEN transaksis.nominal ELSE 0 END), 0) as total_saldo')
+            ->leftJoin('transaksis', 'wargas.id', '=', 'transaksis.warga_id')
+            ->whereNotNull('wargas.rt')
+            ->groupBy('wargas.rt', 'wargas.rw')
+            ->orderBy('wargas.rt')
             ->get();
 
         return view('dashboard.index', compact(
@@ -75,24 +76,5 @@ class DashboardController extends Controller
             'totalJimpitan', 'totalTopup', 'totalPengeluaran', 'totalDonasi', 'wargaLunas', 'wargaBelumBayar', 'wargas',
             'statsPerRT'
         ));
-    }
-
-    public function closeDay()
-    {
-        $today = date('Y-m-d');
-        
-        // Cari warga yang BELUM bayar hari ini
-        $paidWargaIds = Transaksi::whereDate('created_at', $today)
-                                ->where('jenis', 'jimpitan')
-                                ->pluck('warga_id')
-                                ->toArray();
-
-        $unpaidWarga = Warga::whereNotIn('id', $paidWargaIds)->get();
-
-        foreach ($unpaidWarga as $warga) {
-            $warga->increment('tunggakan', 500);
-        }
-
-        return back()->with('success', count($unpaidWarga) . ' warga telah dicatat menunggak Rp 500 untuk hari ini.');
     }
 }

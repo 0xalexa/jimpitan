@@ -13,7 +13,8 @@ class ScanController extends Controller
 {
     public function index()
     {
-        return view('scan.index');
+        $wargas = Warga::orderBy('nama')->get();
+        return view('scan.index', compact('wargas'));
     }
 
     public function process(Request $request)

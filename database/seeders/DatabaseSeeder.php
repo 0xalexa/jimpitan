@@ -43,10 +43,13 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($wargaNames as $index => $name) {
+            $rtNumber = str_pad(rand(1, 4), 3, '0', STR_PAD_LEFT);
             \App\Models\Warga::create([
                 'nik' => '320101' . str_pad($index + 10, 10, '0', STR_PAD_LEFT),
                 'nama' => $name,
                 'alamat' => 'Jl. Desa No. ' . ($index + 1),
+                'rt' => $rtNumber,
+                'rw' => '002',
                 'no_hp' => '081234567' . str_pad($index, 3, '0', STR_PAD_LEFT),
                 'saldo' => rand(500, 50000),
                 'qr_code_string' => 'QR-' . strtoupper(substr($name, 0, 3)) . '-' . (1000 + $index),
