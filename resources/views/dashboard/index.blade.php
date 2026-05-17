@@ -51,13 +51,13 @@
             <div class="stat-header">
                 <div class="stat-info">
                     <p class="label">Warga Sudah Bayar</p>
-                    <h3 class="value">{{ $wargaLunasCount }} <span style="font-size: 1rem; color: var(--text-muted);">Warga</span></h3>
+                    <h3 class="value">{{ $wargaLunasCount }} <span class="stat-unit">Warga</span></h3>
                 </div>
                 <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
                     <i class="fas fa-check-circle"></i>
                 </div>
             </div>
-            <div class="stat-footer" style="color: #64748b;">
+            <div class="stat-footer">
                 <i class="fas fa-users"></i>
                 <span>Dari total {{ $totalWarga }} warga aktif</span>
             </div>
@@ -68,7 +68,7 @@
             <div class="stat-header">
                 <div class="stat-info">
                     <p class="label">Tunggakan Hari Ini</p>
-                    <h3 class="value" style="color: var(--danger);">{{ $totalWargaBelumBayar }} <span style="font-size: 1rem; color: var(--text-muted);">Warga</span></h3>
+                    <h3 class="value stat-value-danger">{{ $totalWargaBelumBayar }} <span class="stat-unit">Warga</span></h3>
                 </div>
                 <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -103,14 +103,14 @@
                 <!-- Activity List Mockup -->
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     @forelse($recentActivities as $activity)
-                    <div style="display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem; border-radius: 0.75rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <div style="width: 32px; height: 32px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div class="activity-item">
+                        <div class="activity-icon">
                             <i class="fas fa-circle-check" style="color: var(--success);"></i>
                         </div>
                         <div>
-                            <p style="font-size: 0.8rem; font-weight: 700; color: white;">{{ $activity->warga->nama ?? 'Sistem' }}</p>
-                            <p style="font-size: 0.7rem; color: var(--text-muted);">{{ $activity->keterangan }}</p>
-                            <p style="font-size: 0.65rem; color: var(--primary-light); margin-top: 0.25rem;">{{ $activity->created_at->diffForHumans() }}</p>
+                            <p class="activity-name">{{ $activity->warga->nama ?? 'Sistem' }}</p>
+                            <p class="activity-desc">{{ $activity->keterangan }}</p>
+                            <p class="activity-time">{{ $activity->created_at->diffForHumans() }}</p>
                         </div>
                     </div>
                     @empty
