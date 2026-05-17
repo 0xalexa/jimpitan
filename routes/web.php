@@ -20,7 +20,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/dashboard/close-day', [DashboardController::class, 'closeDay'])->name('dashboard.close-day');
     
     Route::resource('warga', WargaController::class);
     

@@ -10,9 +10,43 @@ use Illuminate\Support\Facades\Auth;
 
 class TransaksiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $transaksis = Transaksi::with(['warga', 'user'])->latest()->paginate(15);
+        $query = Transaksi::with(['warga', 'user']);
+
+        if ($request->filled('jenis')) {
+            $query->where('jenis', $request->jenis);
+        }
+
+        if ($request->filled('bulan')) {
+            $parts = explode('-', $request->bulan);
+            if (count($parts) === 2) {
+                $query->whereYear('created_at', $parts[0])
+                      ->whereMonth('created_at', $parts[1]);
+            }
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('keterangan', 'like', "%{$search}%")
+                  ->orWhereHas('warga', function($qw) use ($search) {
+                      $qw->where('nama', 'like', "%{$search}%")
+                         ->orWhere('nik', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $transaksis = $query->latest()->paginate(15)->appends($request->all());
+
         return view('transaksi.index', compact('transaksis'));
     }
 
