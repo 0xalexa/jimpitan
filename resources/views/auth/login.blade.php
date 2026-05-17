@@ -17,8 +17,8 @@
                         <i class="fas fa-wallet"></i>
                     </div>
                 </div>
-                <h1 style="font-size: 2rem; font-weight: 900; color: var(--text-main); letter-spacing: -1px;">Jimpitan Digital</h1>
-                <p style="color: var(--text-muted); font-size: 1rem; margin-top: 0.5rem;">Silakan masuk ke Dashboard Admin</p>
+                <h1 style="font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -1px;">Jimpitan Digital</h1>
+                <p style="color: #64748b; font-size: 1rem; margin-top: 0.5rem;">Silakan masuk ke Dashboard Admin</p>
             </div>
 
             <form action="{{ route('login') }}" method="POST">
@@ -27,7 +27,7 @@
                     <label for="email">Alamat Email</label>
                     <input type="email" name="email" id="email" class="form-control" placeholder="admin@jimpitan.com" required autofocus>
                     @error('email')
-                        <p style="color: var(--danger); font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</p>
+                        <p style="color: #f43f5e; font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="form-group">
@@ -40,13 +40,13 @@
             </form>
             
             <div style="margin-top: 1.5rem; text-align: center;">
-                <p style="font-size: 0.875rem; color: var(--text-muted);">
-                    Belum punya akun? <a href="{{ route('register') }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">Daftar di sini</a>
+                <p style="font-size: 0.875rem; color: #64748b;">
+                    Belum punya akun? <a href="{{ route('register') }}" style="color: #6366f1; font-weight: 600; text-decoration: none;">Daftar di sini</a>
                 </p>
             </div>
             
             <div style="margin-top: 2rem; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
-                <p style="font-size: 0.75rem; color: var(--text-muted);">
+                <p style="font-size: 0.75rem; color: #64748b;">
                     Smart Village RT/Desa &copy; 2026
                 </p>
             </div>
