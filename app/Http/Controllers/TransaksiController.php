@@ -13,6 +13,17 @@ class TransaksiController extends Controller
     public function index(Request $request)
     {
         $query = Transaksi::with(['warga', 'user']);
+        $user = auth()->user();
+
+        if ($user->role === 'sekretaris') {
+            $query->where(function($q) use ($user) {
+                $q->whereHas('warga', function($qw) use ($user) {
+                    $qw->where('rt', $user->rt);
+                })->orWhere(function($qu) use ($user) {
+                    $qu->whereNull('warga_id')->where('user_id', $user->id);
+                });
+            });
+        }
 
         if ($request->filled('jenis')) {
             $query->where('jenis', $request->jenis);
@@ -60,7 +71,20 @@ class TransaksiController extends Controller
             "Expires"             => "0"
         ];
 
-        $transaksis = Transaksi::with(['warga', 'user'])->latest()->get();
+        $query = Transaksi::with(['warga', 'user']);
+        $user = auth()->user();
+
+        if ($user->role === 'sekretaris') {
+            $query->where(function($q) use ($user) {
+                $q->whereHas('warga', function($qw) use ($user) {
+                    $qw->where('rt', $user->rt);
+                })->orWhere(function($qu) use ($user) {
+                    $qu->whereNull('warga_id')->where('user_id', $user->id);
+                });
+            });
+        }
+
+        $transaksis = $query->latest()->get();
 
         $callback = function() use($transaksis) {
             $file = fopen('php://output', 'w');
@@ -84,6 +108,38 @@ class TransaksiController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function exportPdf(Request $request)
+    {
+        $query = Transaksi::with(['warga', 'user']);
+        $user = auth()->user();
+
+        if ($user->role === 'sekretaris') {
+            $query->where(function($q) use ($user) {
+                $q->whereHas('warga', function($qw) use ($user) {
+                    $qw->where('rt', $user->rt);
+                })->orWhere(function($qu) use ($user) {
+                    $qu->whereNull('warga_id')->where('user_id', $user->id);
+                });
+            });
+        }
+
+        if ($request->filled('bulan')) {
+            $parts = explode('-', $request->bulan);
+            if (count($parts) === 2) {
+                $query->whereYear('created_at', $parts[0])
+                      ->whereMonth('created_at', $parts[1]);
+            }
+        }
+
+        $transaksis = $query->latest()->get();
+        
+        $totalPemasukan = $transaksis->whereIn('jenis', ['jimpitan', 'topup', 'donasi'])->sum('nominal');
+        $totalPengeluaran = $transaksis->where('jenis', 'pengeluaran')->sum('nominal');
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('transaksi.pdf', compact('transaksis', 'totalPemasukan', 'totalPengeluaran'));
+        return $pdf->download('laporan_jimpitan_' . date('Y_m_d') . '.pdf');
+    }
+
     public function topup(Request $request)
     {
         $request->validate([
@@ -93,7 +149,24 @@ class TransaksiController extends Controller
         ]);
 
         $warga = Warga::findOrFail($request->warga_id);
-        $warga->increment('saldo', $request->nominal);
+        $nominal = $request->nominal;
+        $keterangan = 'Top Up Saldo via ' . $request->metode_pembayaran;
+
+        if ($warga->tunggakan > 0) {
+            if ($nominal >= $warga->tunggakan) {
+                $sisa = $nominal - $warga->tunggakan;
+                $keterangan .= ' (Melunasi tunggakan Rp ' . number_format($warga->tunggakan, 0, ',', '.') . ')';
+                $warga->update(['tunggakan' => 0]);
+                if ($sisa > 0) {
+                    $warga->increment('saldo', $sisa);
+                }
+            } else {
+                $warga->decrement('tunggakan', $nominal);
+                $keterangan .= ' (Mencicil tunggakan Rp ' . number_format($nominal, 0, ',', '.') . ')';
+            }
+        } else {
+            $warga->increment('saldo', $nominal);
+        }
 
         Transaksi::create([
             'warga_id' => $warga->id,
@@ -101,10 +174,10 @@ class TransaksiController extends Controller
             'nominal' => $request->nominal,
             'metode_pembayaran' => $request->metode_pembayaran,
             'jenis' => 'topup',
-            'keterangan' => 'Top Up Saldo via ' . $request->metode_pembayaran,
+            'keterangan' => $keterangan,
         ]);
 
-        return back()->with('success', 'Top up berhasil.');
+        return back()->with('success', 'Top up berhasil diproses.');
     }
 
     public function manualPayment(Request $request)
