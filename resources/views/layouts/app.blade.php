@@ -6,6 +6,8 @@
     <title>@yield('title') - Jimpitan Digital</title>
     
     <!-- CSS & Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/glass.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,18 +17,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     @stack('styles')
-    
-    <script>
-        // Immediately detect and apply theme to avoid visual flash
-        (function() {
-            const savedTheme = localStorage.getItem('jimpitan-theme') || 'dark';
-            if (savedTheme === 'light') {
-                document.documentElement.classList.add('light-theme');
-            } else {
-                document.documentElement.classList.remove('light-theme');
-            }
-        })();
-    </script>
 </head>
 <body>
     <div class="mouse-glow" id="mouseGlow"></div>
@@ -48,24 +38,30 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
+                @if(Auth::user()->role !== 'petugas')
                 <li class="nav-item">
                     <a href="{{ route('warga.index') }}" class="nav-link {{ request()->routeIs('warga.*') ? 'active' : '' }}">
                         <i class="fas fa-users-viewfinder"></i>
                         <span>Data Warga</span>
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->role === 'petugas')
                 <li class="nav-item">
                     <a href="{{ route('scan.index') }}" class="nav-link {{ request()->routeIs('scan.index') ? 'active' : '' }}">
                         <i class="fas fa-qrcode"></i>
                         <span>Scan QR Code</span>
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->role !== 'petugas')
                 <li class="nav-item">
                     <a href="{{ route('transaksi.index') }}" class="nav-link {{ request()->routeIs('transaksi.*') ? 'active' : '' }}">
                         <i class="fas fa-receipt"></i>
                         <span>Riwayat Kas</span>
                     </a>
                 </li>
+                @endif
             </nav>
 
             <div class="sidebar-user">
@@ -92,17 +88,16 @@
 
                 <div class="header-right">
                     <div class="header-tools">
-                        <button class="btn-header" onclick="toggleTheme()" id="themeToggleBtn" title="Ganti Tema" style="padding: 0.625rem 0.85rem !important;">
-                            <i class="fas fa-sun" id="themeIcon" style="font-size: 1.1rem; color: var(--warning);"></i>
-                        </button>
                         <button class="btn-header">
                             <i class="far fa-calendar"></i>
                             <span>{{ date('d M Y') }}</span>
                         </button>
+                        @if(Auth::user()->role !== 'petugas')
                         <button class="btn-header primary" onclick="location.href='{{ route('transaksi.export') }}'">
                             <i class="fas fa-cloud-arrow-down"></i>
                             <span>Export Laporan</span>
                         </button>
+                        @endif
                     </div>
                     
                     <form action="{{ route('logout') }}" method="POST" style="display: inline;">
@@ -237,6 +232,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
     <script>
         // Mouse Glow Effect
@@ -280,44 +276,8 @@
             }
         });
 
-        // Theme Toggler Pro
-        function initTheme() {
-            const savedTheme = localStorage.getItem('jimpitan-theme') || 'dark';
-            const icon = document.getElementById('themeIcon');
-            const btn = document.getElementById('themeToggleBtn');
-            if (savedTheme === 'light') {
-                document.documentElement.classList.add('light-theme');
-                if (icon) {
-                    icon.className = 'fas fa-moon';
-                    icon.style.color = '#64748b'; // Sleek slate moon
-                }
-                if (btn) {
-                    btn.title = 'Ganti ke Tema Gelap';
-                }
-            } else {
-                document.documentElement.classList.remove('light-theme');
-                if (icon) {
-                    icon.className = 'fas fa-sun';
-                    icon.style.color = '#fbbf24'; // Radiant space sun
-                }
-                if (btn) {
-                    btn.title = 'Ganti ke Tema Terang';
-                }
-            }
-        }
-
-        function toggleTheme() {
-            const currentTheme = localStorage.getItem('jimpitan-theme') || 'dark';
-            if (currentTheme === 'dark') {
-                localStorage.setItem('jimpitan-theme', 'light');
-            } else {
-                localStorage.setItem('jimpitan-theme', 'dark');
-            }
-            initTheme();
-        }
-
-        // Initialize on DOM load
-        document.addEventListener('DOMContentLoaded', initTheme);
+        // Light theme is always active
+        document.documentElement.classList.add('light-theme');
     </script>
 </body>
 </html>

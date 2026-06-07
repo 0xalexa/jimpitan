@@ -13,42 +13,22 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $today = Carbon::today();
-        
-        $totalKas = Warga::sum('saldo');
-        $totalWarga = Warga::count();
-        $pemasukanHariIni = Transaksi::whereDate('created_at', $today)
-                                    ->where('jenis', 'jimpitan')
-                                    ->sum('nominal');
-        
-        $wargaLunasIds = Transaksi::whereDate('created_at', $today)
-                                    ->where('jenis', 'jimpitan')
-                                    ->pluck('warga_id')
-                                    ->toArray();
+        $user = auth()->user();
 
-        $wargaLunas = Warga::whereIn('id', $wargaLunasIds)->get();
-        $wargaBelumBayar = Warga::whereNotIn('id', $wargaLunasIds)->get();
-        $wargaLunasCount = count($wargaLunasIds);
-                                    
-        $recentActivities = Transaksi::with(['warga', 'user'])
-                                        ->latest()
-                                        ->take(8)
-                                        ->get();
-
-        $topBalanceWarga = Warga::orderBy('saldo', 'desc')->take(5)->get();
-        $totalWargaBelumBayar = $totalWarga - $wargaLunasCount;
-
-        // Chart Data (7 days)
-        $chartLabels = [];
-        $chartData = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            $chartLabels[] = $date->format('d M');
-            $chartData[] = Transaksi::whereDate('created_at', $date)
-                                     ->where('jenis', 'jimpitan')
-                                     ->sum('nominal');
+        if ($user->role === 'admin') {
+            return $this->adminDashboard();
+        } elseif ($user->role === 'sekretaris') {
+            return $this->sekretarisDashboard();
+        } elseif ($user->role === 'petugas') {
+            return $this->petugasDashboard();
         }
 
+        abort(403);
+    }
+
+    private function adminDashboard()
+    {
+        $totalWarga = Warga::count();
         $totalJimpitan = Transaksi::where('jenis', 'jimpitan')->sum('nominal');
         $totalTopup = Transaksi::where('jenis', 'topup')->sum('nominal');
         $totalPengeluaran = Transaksi::where('jenis', 'pengeluaran')->sum('nominal');
@@ -56,10 +36,9 @@ class DashboardController extends Controller
         
         // Total Kas RT = Saldo semua warga + (Total Jimpitan + Total Donasi - Total Pengeluaran)
         $totalKas = Warga::sum('saldo') + ($totalJimpitan + $totalDonasi - $totalPengeluaran);
+        $totalTunggakan = Warga::sum('tunggakan');
 
-        $wargas = Warga::all();
-
-        // Stats per RT (Hanya menghitung jimpitan yang terkumpul)
+        // Stats per RT
         $statsPerRT = Warga::select('wargas.rt', 'wargas.rw')
             ->selectRaw('COUNT(DISTINCT wargas.id) as total_warga')
             ->selectRaw('COALESCE(SUM(CASE WHEN transaksis.jenis = "jimpitan" THEN transaksis.nominal ELSE 0 END), 0) as total_saldo')
@@ -69,12 +48,53 @@ class DashboardController extends Controller
             ->orderBy('wargas.rt')
             ->get();
 
-        return view('dashboard.index', compact(
-            'totalKas', 'totalWarga', 'pemasukanHariIni', 
-            'wargaLunasCount', 'recentActivities', 'chartLabels', 'chartData',
-            'topBalanceWarga', 'totalWargaBelumBayar',
-            'totalJimpitan', 'totalTopup', 'totalPengeluaran', 'totalDonasi', 'wargaLunas', 'wargaBelumBayar', 'wargas',
-            'statsPerRT'
+        return view('dashboard.admin', compact(
+            'totalKas', 'totalWarga', 'totalJimpitan', 'totalTopup', 'totalPengeluaran', 'totalDonasi', 'statsPerRT', 'totalTunggakan'
         ));
+    }
+
+    private function sekretarisDashboard()
+    {
+        $user = auth()->user();
+        
+        $totalWarga = Warga::where('rt', $user->rt)->count();
+        
+        $getSum = function($jenis) use ($user) {
+            return Transaksi::where('jenis', $jenis)
+                ->where(function($q) use ($user) {
+                    $q->whereHas('warga', function($w) use ($user) {
+                        $w->where('rt', $user->rt);
+                    })->orWhere(function($w) use ($user) {
+                        $w->whereNull('warga_id')->where('user_id', $user->id);
+                    });
+                })->sum('nominal');
+        };
+
+        $totalKas = $getSum('jimpitan') + $getSum('donasi') - $getSum('pengeluaran');
+        
+        $recentActivities = Transaksi::with(['warga', 'user'])
+                                        ->whereHas('warga', function($q) use ($user) {
+                                            $q->where('rt', $user->rt);
+                                        })
+                                        ->orWhere(function($q) use ($user) {
+                                            $q->whereNull('warga_id')->where('user_id', $user->id);
+                                        })
+                                        ->latest()
+                                        ->take(8)
+                                        ->get();
+
+        $wargaMenunggak = Warga::where('rt', $user->rt)->where('tunggakan', '>', 0)->get();
+
+        return view('dashboard.sekretaris', compact('totalWarga', 'totalKas', 'recentActivities', 'wargaMenunggak'));
+    }
+
+    private function petugasDashboard()
+    {
+        $user = auth()->user();
+        $wargaBelumScan = Warga::where('rt', $user->rt)->where('status_harian', 0)->get();
+        $wargaSudahScan = Warga::where('rt', $user->rt)->where('status_harian', 1)->get();
+        $wargaTunggakan = Warga::where('rt', $user->rt)->where('tunggakan', '>', 0)->get();
+
+        return view('dashboard.petugas', compact('wargaBelumScan', 'wargaSudahScan', 'wargaTunggakan'));
     }
 }

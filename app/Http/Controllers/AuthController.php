@@ -50,8 +50,10 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,petugas',
+            'role' => 'required|in:sekretaris,petugas',
             'phone' => 'nullable|string|max:20',
+            'rt' => 'required|string|max:3',
+            'rw' => 'required|string|max:3',
         ]);
 
         $user = \App\Models\User::create([
@@ -60,6 +62,8 @@ class AuthController extends Controller
             'password' => \Illuminate\Support\Facades\Hash::make($data['password']),
             'role' => $data['role'],
             'phone' => $data['phone'],
+            'rt' => str_pad($data['rt'], 3, '0', STR_PAD_LEFT),
+            'rw' => str_pad($data['rw'], 3, '0', STR_PAD_LEFT),
         ]);
 
         Auth::login($user);

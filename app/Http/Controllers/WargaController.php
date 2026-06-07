@@ -12,9 +12,15 @@ class WargaController extends Controller
     {
         $query = Warga::query();
 
-        if ($request->has('rt') && $request->rt != '') {
-            $query->where('rt', $request->rt);
+        $user = auth()->user();
+        if ($user->role === 'sekretaris') {
+            $query->where('rt', $user->rt);
+        } else {
+            if ($request->has('rt') && $request->rt != '') {
+                $query->where('rt', $request->rt);
+            }
         }
+        
         if ($request->has('rw') && $request->rw != '') {
             $query->where('rw', $request->rw);
         }
@@ -22,7 +28,11 @@ class WargaController extends Controller
         $wargas = $query->get();
         $totalSaldoFiltered = $query->sum('saldo');
         
-        $rtList = Warga::whereNotNull('rt')->distinct()->pluck('rt')->sort();
+        if ($user->role === 'sekretaris') {
+            $rtList = collect([$user->rt]);
+        } else {
+            $rtList = Warga::whereNotNull('rt')->distinct()->pluck('rt')->sort();
+        }
         $rwList = Warga::whereNotNull('rw')->distinct()->pluck('rw')->sort();
 
         return view('warga.index', compact('wargas', 'rtList', 'rwList', 'totalSaldoFiltered'));
@@ -45,6 +55,11 @@ class WargaController extends Controller
             'saldo' => 'required|numeric|min:0',
         ]);
 
+        $user = auth()->user();
+        if ($user->role === 'sekretaris') {
+            $data['rt'] = $user->rt;
+        }
+
         $data['qr_code_string'] = 'JMP-' . $data['nik'] . '-' . time();
 
         Warga::create($data);
@@ -54,16 +69,20 @@ class WargaController extends Controller
 
     public function show(Warga $warga)
     {
+        if (auth()->user()->role === 'sekretaris' && $warga->rt !== auth()->user()->rt) abort(403);
         return view('warga.show', compact('warga'));
     }
 
     public function edit(Warga $warga)
     {
+        if (auth()->user()->role === 'sekretaris' && $warga->rt !== auth()->user()->rt) abort(403);
         return view('warga.edit', compact('warga'));
     }
 
     public function update(Request $request, Warga $warga)
     {
+        if (auth()->user()->role === 'sekretaris' && $warga->rt !== auth()->user()->rt) abort(403);
+        
         $data = $request->validate([
             'nik' => 'required|unique:wargas,nik,' . $warga->id,
             'nama' => 'required',
@@ -74,6 +93,10 @@ class WargaController extends Controller
             'saldo' => 'required|numeric|min:0',
         ]);
 
+        if (auth()->user()->role === 'sekretaris') {
+            $data['rt'] = auth()->user()->rt;
+        }
+
         $warga->update($data);
 
         return redirect()->route('warga.index')->with('success', 'Data warga berhasil diupdate.');
@@ -81,6 +104,7 @@ class WargaController extends Controller
 
     public function destroy(Warga $warga)
     {
+        if (auth()->user()->role === 'sekretaris' && $warga->rt !== auth()->user()->rt) abort(403);
         $warga->delete();
         return redirect()->route('warga.index')->with('success', 'Warga berhasil dihapus.');
     }

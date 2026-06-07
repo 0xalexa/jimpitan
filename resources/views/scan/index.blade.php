@@ -125,6 +125,8 @@
 @push('scripts')
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
+    let isProcessing = false;
+    let lastScannedCode = null;
     let html5QrCode;
     try {
         html5QrCode = new Html5Qrcode("reader");
@@ -132,13 +134,31 @@
         console.error("Reader container element not found yet or HTML5Qrcode error:", e);
     }
 
+    const resultOriginalHTML = `<div class="badge badge-info" id="scanned-text">Memproses...</div>`;
+
+    function resetResultDiv() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = resultOriginalHTML;
+        resultDiv.style.display = 'none';
+    }
+
     function processQRCodeString(qrCodeString) {
+        if (isProcessing) return;
+        isProcessing = true;
+        lastScannedCode = qrCodeString;
+
         // Pause camera scanner if it is active
         if (html5QrCode) {
-            try { html5QrCode.pause(); } catch (e) {}
+            try { html5QrCode.pause(true); } catch (e) {
+                try { html5QrCode.pause(); } catch (err) {}
+            }
         }
+
+        // Reset result div ke state awal dulu
+        resetResultDiv();
         
-        document.getElementById('result').style.display = 'block';
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
         document.getElementById('scanned-text').innerText = 'Memproses: ' + qrCodeString;
 
         // AJAX Process
@@ -159,7 +179,6 @@
                     setTimeout(() => scannerContainer.classList.remove('success-pulse'), 500);
                 }
 
-                const resultDiv = document.getElementById('result');
                 resultDiv.innerHTML = `
                     <div style="text-align: center; animation: pulse 1s infinite;">
                         <div style="width: 80px; height: 80px; background: var(--success); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
@@ -204,6 +223,7 @@
     }
 
     const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        if (isProcessing || decodedText === lastScannedCode) return;
         processQRCodeString(decodedText);
     };
 
@@ -230,10 +250,22 @@
     }
 
     function resumeScan() {
-        document.getElementById('result').style.display = 'none';
+        // Reset result ke template awal
+        resetResultDiv();
+        
+        // Reset manual inputs
+        document.getElementById('manualQRInput').value = '';
+        document.getElementById('simulateWargaSelect').value = '';
+        
+        // Resume kamera
         if (html5QrCode) {
             try { html5QrCode.resume(); } catch (e) {}
         }
+
+        // Delay sedikit agar frame lama tidak langsung terbaca
+        setTimeout(() => {
+            isProcessing = false;
+        }, 1000);
     }
 
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };

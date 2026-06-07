@@ -26,8 +26,14 @@
             <h3 class="card-title">Riwayat Transaksi Lengkap</h3>
             <div style="display: flex; gap: 0.75rem;">
                 <button class="btn btn-outline" onclick="window.print()">
-                    <i class="fas fa-print"></i> Cetak Laporan
+                    <i class="fas fa-print"></i> Cetak
                 </button>
+                <a href="{{ route('transaksi.export') }}" class="btn btn-outline-success">
+                    <i class="fas fa-file-excel"></i> Excel (CSV)
+                </a>
+                <a href="{{ route('transaksi.export.pdf') }}?{{ http_build_query(request()->all()) }}" class="btn btn-outline-danger">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
                 <button class="btn btn-primary" onclick="toggleFilterPanel()">
                     <i class="fas fa-filter"></i> Filter
                 </button>

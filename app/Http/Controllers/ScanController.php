@@ -57,7 +57,10 @@ class ScanController extends Controller
 
         // Proses pembayaran
         $warga->decrement('saldo', $tagihan);
-        $warga->update(['tunggakan' => 0]);
+        $warga->update([
+            'tunggakan' => 0,
+            'status_harian' => 1
+        ]);
 
         Transaksi::create([
             'warga_id' => $warga->id,

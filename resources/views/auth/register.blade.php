@@ -41,13 +41,30 @@
                     <div class="form-group">
                         <label for="role">Hak Akses</label>
                         <select name="role" id="role" class="form-control" required>
-                            <option value="petugas" {{ old('role') == 'petugas' ? 'selected' : '' }}>Petugas</option>
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin RT</option>
+                            <option value="petugas" {{ old('role') == 'petugas' ? 'selected' : '' }}>Petugas Ronda</option>
+                            <option value="sekretaris" {{ old('role') == 'sekretaris' ? 'selected' : '' }}>Sekretaris RT</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="phone">No. HP</label>
                         <input type="text" name="phone" id="phone" class="form-control" placeholder="0812..." value="{{ old('phone') }}">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="rt">RT</label>
+                        <input type="number" name="rt" id="rt" class="form-control" placeholder="Contoh: 1" required value="{{ old('rt') }}">
+                        @error('rt')
+                            <p style="color: var(--danger); font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="rw">RW</label>
+                        <input type="number" name="rw" id="rw" class="form-control" placeholder="Contoh: 2" required value="{{ old('rw') }}">
+                        @error('rw')
+                            <p style="color: var(--danger); font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 

@@ -1,0 +1,192 @@
+/* ========================================
+   LIGHT MODE GLASSMORPHISM UTILITIES 
+   Tema Terang Elegan - E-Jimpitan Digital
+   ======================================== */
+
+body {
+    background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 50%, #fce4ec 100%);
+    background-attachment: fixed;
+    color: #1e293b;
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Glass Cards - Light Mode */
+.glass-card {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.08), 0 2px 8px rgba(0,0,0,0.04);
+    color: #1e293b;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.12), 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.glass-card .text-muted {
+    color: #64748b !important;
+}
+
+.glass-card h2, .glass-card h1 {
+    color: #0f172a;
+}
+
+/* Glass Navbar - Light */
+.glass-navbar {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.glass-navbar .navbar-brand, .glass-navbar .nav-link {
+    color: #1e293b !important;
+}
+
+/* Glass Table - Light */
+.glass-table {
+    color: #1e293b;
+}
+.glass-table th {
+    background: rgba(99, 102, 241, 0.06) !important;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-color: rgba(0, 0, 0, 0.06);
+}
+.glass-table td {
+    background: transparent !important;
+    color: #334155;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Form Controls - Light */
+.form-control-glass {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+.form-control-glass:focus {
+    background: rgba(255, 255, 255, 0.95);
+    color: #1e293b;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+}
+.form-control-glass::placeholder {
+    color: #94a3b8;
+}
+
+.form-select-glass {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+.form-select-glass option {
+    background-color: #fff;
+    color: #1e293b;
+}
+
+/* ========================================
+   SCAN BUTTON - PETUGAS MOBILE
+   ======================================== */
+.btn-scan-massive {
+    width: 100%;
+    height: 150px;
+    font-size: 2rem;
+    font-weight: bold;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-scan-massive:hover {
+    transform: scale(1.02);
+    box-shadow: 0 14px 36px rgba(99, 102, 241, 0.5);
+    color: #fff;
+}
+
+.btn-scan-massive:active {
+    transform: scale(0.97);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* ========================================
+   TYPOGRAPHY HELPERS - Ramah Lansia
+   ======================================== */
+.font-large {
+    font-size: 1.25rem !important;
+}
+
+.font-xlarge {
+    font-size: 1.5rem !important;
+}
+
+/* ========================================
+   STATUS INDICATORS
+   ======================================== */
+.status-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-green {
+    background-color: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.status-red {
+    background-color: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.status-yellow {
+    background-color: #f59e0b;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* ========================================
+   PETUGAS MOBILE LIST ITEMS (Light)
+   ======================================== */
+.petugas-warga-item {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.15s ease;
+}
+
+.petugas-warga-item:hover {
+    transform: translateX(4px);
+}
+
+.petugas-warga-item.done {
+    opacity: 0.55;
+}
+
+/* Badge overrides for glass style */
+.badge.bg-warning {
+    color: #78350f !important;
+}
